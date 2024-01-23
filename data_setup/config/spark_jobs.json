@@ -1,0 +1,186 @@
+{
+    "aws_data": {
+        "transient": "./datalake/transient",
+        "datalake": "./datalake",
+        "raw": "./datalake/camada_raw",
+        "consumer": "./datalake/camada_consumer"
+    },
+    "tables_config_dict": {
+        "clientes": {
+            "format": "parquet"
+        },
+        "clientes_opt": {
+            "format": "json"
+        },
+        "endereco_clientes": {
+            "format": "parquet"
+        },
+        "itens_vendas": {
+            "format": "parquet"
+        },
+        "pedidos": {
+            "format": "parquet"
+        },
+        "pedido_Vendas": {
+            "format": "parquet"
+        },
+        "vendas": {
+            "format": "parquet"
+        }
+    },
+    "transform_data": {
+        "clientes": {
+            "insert_fields": [
+                "processed",
+                "creationDate"
+            ],
+            "primary_key": "IdProcessamento",
+            "sql_create_id": "",
+            "table_tmp": "clientes_tmp",
+            "label_orig": "table_origem",
+            "label_destino": "table_destino",
+            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "match_filds": {
+                "processed": "true"
+            }
+        },
+        "clientes_opt": {
+            "insert_fields": [
+                "processed",
+                "creationDate"
+            ],
+            "primary_key": "IdProcessamento",
+            "sql_create_id": "",
+            "table_tmp": "clientes_tmp",
+            "label_orig": "table_origem",
+            "label_destino": "table_destino",
+            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "match_filds": {
+                "processed": "true"
+            }
+        },
+        "endereco_clientes": {
+            "insert_fields": [
+                "processed",
+                "creationDate"
+            ],
+            "primary_key": "IdProcessamento",
+            "sql_create_id": "",
+            "table_tmp": "endereco_clientes_tmp",
+            "label_orig": "table_origem",
+            "label_destino": "table_destino",
+            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "match_filds": {
+                "processed": "true"
+            }
+        },
+        "itens_vendas": {
+            "insert_fields": [
+                "processed",
+                "creationDate"
+            ],
+            "primary_key": "IdProcessamento",
+            "sql_create_id": "",
+            "table_tmp": "itens_vendas_tmp",
+            "label_orig": "table_origem",
+            "label_destino": "table_destino",
+            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "match_filds": {
+                "processed": "true"
+            }
+        },
+        "pedidos": {
+            "insert_fields": [
+                "processed",
+                "creationDate"
+            ],
+            "primary_key": "IdProcessamento",
+            "sql_create_id": "",
+            "table_tmp": "pedidos_tmp",
+            "label_orig": "table_origem",
+            "label_destino": "table_destino",
+            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "match_filds": {
+                "processed": "true"
+            }
+        },
+        "pedido_Vendas": {
+            "insert_fields": [
+                "processed",
+                "creationDate"
+            ],
+            "primary_key": "IdProcessamento",
+            "sql_create_id": "",
+            "table_tmp": "pedido_Vendas_tmp",
+            "label_orig": "table_origem",
+            "label_destino": "table_destino",
+            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "match_filds": {
+                "processed": "true"
+            }
+        },
+        "vendas": {
+            "insert_fields": [
+                "processed",
+                "creationDate"
+            ],
+            "primary_key": "IdProcessamento",
+            "sql_create_id": "",
+            "table_tmp": "vendas_tmp",
+            "label_orig": "table_origem",
+            "label_destino": "table_destino",
+            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "match_filds": {
+                "processed": "true"
+            }
+        }
+    },
+    "gold_operations": {
+        "vendas_consolidada": {
+            "join_operations": {
+                "tables": [
+                    "vendas",
+                    "itens_vendas",
+                    "pedido_venda",
+                    "pedidos"
+                ]
+            },
+            "table_name": "vendas_consolidada",
+            "table_step": {
+                "raww": "raw",
+                "consumer": "consumer"
+            },
+            "primary_key": ["codigo_filial", "codigo_cupom_venda"],
+            "sql_query": "",
+            "label_orig": "table_origem",
+            "label_destino": "table_destino",
+            "condition": "table_destino.codigo_filial = table_origem.codigo_filial AND table_destino.codigo_cupom_venda = table_origem.codigo_cupom_venda",
+            "match_filds": {
+                "processed": "true"
+            },
+            "upsert_silver": "false"
+        },
+        "clientes_Consolidada": {
+            "join_operations": {
+                "tables": [
+                    "clientes",
+                    "clientes_opt"
+                ]
+            },
+            "table_name": "clientes_Consolidada",
+            "table_step": {
+                "raww": "raw",
+                "consumer": "consumer"
+            },
+            "primary_key": "codigo_cliente",
+            "sql_query": "",
+            "label_orig": "table_origem",
+            "label_destino": "table_destino",
+            "condition": "table_destino.codigo_cliente = table_origem.codigo_cliente",
+            "match_filds": {
+                "processed": "true"
+            },
+            "upsert_silver": "false"
+        }
+    }
+}
