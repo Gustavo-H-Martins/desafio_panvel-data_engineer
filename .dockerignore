@@ -20,3 +20,7 @@ Pipfile.lock
 **/README
 **/README.md
 
+*.lock
+__pycache__/
+jars/hadoop/
+jars/spark/

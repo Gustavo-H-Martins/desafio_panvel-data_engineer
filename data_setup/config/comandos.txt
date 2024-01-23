@@ -13,6 +13,9 @@
     docker run -it  --name job_spark-c job_spark-i:latest
     # Mapeando a porta
     docker run -p 4040:4040 -dit  --name job_spark-c job_spark-i:latest
+    # Mapeando a porta e o volume de execução
+    docker run -p 4040:4040 -dit --name job_spark-c -v .:./app job_spark-i:latest
+
 ```
 
 ``` Docker Prune - Faz a limpeza de todo restolho usado pelo Docker no ambiente

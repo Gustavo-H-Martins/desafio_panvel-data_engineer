@@ -54,7 +54,7 @@ def definir_variaveis_ambiente() -> None:
     diretorio_python = sys.exec_prefix
 
     # Adiciona a variável `SPARK_HOME` e `HADOOP_HOME`
-    spark_home = os.path.abspath(os.path.join(jars_dir, "spark/spark-3.5.0-bin-hadoop3"))
+    spark_home = os.path.abspath(os.path.join(jars_dir, "spark/spark-3.4.0-bin-hadoop3"))
     os.environ["SPARK_HOME"] = spark_home
 
     hadoop_home = os.path.abspath(os.path.join(jars_dir, "hadoop"))
