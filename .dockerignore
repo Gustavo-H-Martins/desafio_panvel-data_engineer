@@ -1,0 +1,22 @@
+# Ignore todos os arquivos yml, md
+*.yml
+*.md
+
+# Ignore as pastas docs, config, .vscode, __pycache__
+.vscode/
+docs/
+config/
+**/__pycache__/
+
+# Ignore os arquivos de configuração docker
+Dockerfile
+
+
+# Ignore os aruivos do `Pipenv`
+Pipfile
+Pipfile.lock
+
+# Ignora todos os arquivos README
+**/README
+**/README.md
+
