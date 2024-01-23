@@ -1,5 +1,6 @@
 {
     "python.analysis.extraPaths": [
-        "./data_setup"
+        "./data_setup",
+        "./data_processing"
     ]
 }

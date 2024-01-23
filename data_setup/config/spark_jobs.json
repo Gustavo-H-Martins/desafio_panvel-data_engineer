@@ -1,18 +1,70 @@
 {
-    "aws_data": {
+    "datalake_paths": {
         "transient": "./datalake/transient",
         "datalake": "./datalake",
-        "raw": "./datalake/camada_raw",
+        "refined": "./datalake/camada_refined",
         "consumer": "./datalake/camada_consumer"
+    },
+    "transient_config_dict": {
+        "clientes": {
+                "header": "true",
+                "inferSchema": "true",
+                "format_out": "delta",
+                "mode": "overwrite",
+                "format_in": "parquet"
+        },
+        "clientes_opt": {
+                "header": "true",
+                "inferSchema": "true",
+                "format_out": "delta",
+                "mode": "overwrite",
+                "format_in": "json",
+                "multiline": "true"
+        },
+        "enderecos_clientes": {
+                "header": "true",
+                "inferSchema": "true",
+                "format_out": "delta",
+                "mode": "overwrite",
+                "format_in": "parquet"
+        },
+        "itens_vendas": {
+                "header": "true",
+                "inferSchema": "true",
+                "format_out": "delta",
+                "mode": "overwrite",
+                "format_in": "parquet"
+        },
+        "pedidos": {
+                "header": "true",
+                "inferSchema": "true",
+                "format_out": "delta",
+                "mode": "overwrite",
+                "format_in": "parquet"
+        },
+        "pedido_Vendas": {
+                "header": "true",
+                "inferSchema": "true",
+                "format_out": "delta",
+                "mode": "overwrite",
+                "format_in": "parquet"
+        },
+        "vendas": {
+                "header": "true",
+                "inferSchema": "true",
+                "format_out": "delta",
+                "mode": "overwrite",
+                "format_in": "parquet"
+        }
     },
     "tables_config_dict": {
         "clientes": {
             "format": "parquet"
         },
         "clientes_opt": {
-            "format": "json"
+            "format": "parquet"
         },
-        "endereco_clientes": {
+        "enderecos_clientes": {
             "format": "parquet"
         },
         "itens_vendas": {
@@ -34,12 +86,12 @@
                 "processed",
                 "creationDate"
             ],
-            "primary_key": "IdProcessamento",
-            "sql_create_id": "",
+            "primary_key": "codigo_cliente",
+            "sql_query": " -- 'Tabela Endereços Clientes parquet'\nSELECT \n    CAST(c.v_id_cli AS STRING) AS codigo_cliente,\n    COALESCE(CAST(c.d_dt_nasc AS DATE), '') AS data_nascimento_cliente,\n    CASE \n        WHEN c.v_sx_cli  = 'F' THEN 'Feminino'\n        WHEN c.v_sx_cli  = 'M' THEN 'Masculino'\n        ELSE '' \n    END AS genero_biologico_cliente,\n    CASE \n        WHEN c.n_est_cvl  = 1 THEN 'Solteiro'\n        WHEN c.n_est_cvl  = 2 THEN 'Casado'\n        WHEN c.n_est_cvl  = 3 THEN 'Viúvo'\n        WHEN c.n_est_cvl  = 4 THEN 'Desquitado'\n        WHEN c.n_est_cvl  = 5 THEN 'Divorciado'\n        WHEN c.n_est_cvl  = 6 THEN 'Outros'\n        ELSE ''\n    END AS estado_civil_cliente\nFROM clientes_tmp as c",
             "table_tmp": "clientes_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "condition": "table_destino.codigo_cliente = table_origem.codigo_cliente",
             "match_filds": {
                 "processed": "true"
             }
@@ -49,27 +101,27 @@
                 "processed",
                 "creationDate"
             ],
-            "primary_key": "IdProcessamento",
-            "sql_create_id": "",
-            "table_tmp": "clientes_tmp",
+            "primary_key": "codigo_cliente",
+            "sql_query": " -- 'Tabela Clientes Opt Json'\nSELECT \n    CAST(co.v_id_cli AS STRING) AS codigo_cliente,\n    CASE \n        WHEN co.b_push  = True THEN 'SIM'\n        WHEN co.b_push  = False THEN 'NÃO'\n        ELSE ''\n    END AS autoriza_notificacao_push,\n    CASE \n        WHEN co.b_sms  = True THEN 'SIM'\n        WHEN co.b_sms  = False THEN 'NÃO'\n        ELSE ''\n    END AS autoriza_notificacao_sms,\n    CASE \n        WHEN co.b_email  = True THEN 'SIM'\n        WHEN co.b_email  = False THEN 'NÃO'\n        ELSE ''\n    END AS autoriza_notificacao_email,\n    CASE \n        WHEN co.b_call  = True THEN 'SIM'\n        WHEN co.b_call  = False THEN 'NÃO'\n        ELSE ''\n    END AS autoriza_notificacao_ligacao\nFROM clientes_opt_tmp as co",
+            "table_tmp": "clientes_opt_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "condition": "table_destino.codigo_cliente = table_origem.codigo_cliente",
             "match_filds": {
                 "processed": "true"
             }
         },
-        "endereco_clientes": {
+        "enderecos_clientes": {
             "insert_fields": [
                 "processed",
                 "creationDate"
             ],
-            "primary_key": "IdProcessamento",
-            "sql_create_id": "",
-            "table_tmp": "endereco_clientes_tmp",
+            "primary_key": ["codigo_cliente", "sequencia_endereco_cliente"],
+            "sql_query": " -- 'Tabela Endereços Clientes parquet'\nSELECT \n    CAST(ec.v_id_cli AS STRING) AS codigo_cliente,\n    CAST(ec.n_sq_end AS BIGINT) AS sequencia_endereco_cliente,\n    COALESCE(date_format(ec.d_dt_exc, 'yyyy-MM-dd HH:mm:ss'), '') AS data_exclusao_endereco,\n    CAST(ec.v_lcl AS STRING) AS cidade_endereco,\n    CAST(ec.v_uf AS STRING) AS UF_endereco\nFROM enderecos_clientes_tmp as ec",
+            "table_tmp": "enderecos_clientes_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "condition": "table_destino.codigo_cliente = table_origem.codigo_cliente AND table_destino.sequencia_endereco_cliente = table_origem.sequencia_endereco_cliente",
             "match_filds": {
                 "processed": "true"
             }
@@ -79,12 +131,12 @@
                 "processed",
                 "creationDate"
             ],
-            "primary_key": "IdProcessamento",
-            "sql_create_id": "",
+            "primary_key": ["codigo_filial", "id_venda_filial", "codigo_item_venda"],
+            "sql_query": " -- 'Tabela Itens Vendas parquet'\nSELECT \n    CAST(iv.n_id_fil AS BIGINT) AS codigo_filial,\n    CAST(iv.n_id_vd_fil AS BIGINT) AS id_venda_filial,\n    CAST(iv.n_id_it AS BIGINT) AS codigo_item_venda,\n    CASE \n        WHEN iv.v_rc_elt  = 'SIM' THEN True\n        ELSE False\n    END AS com_receita_eletronica,\n    CASE \n        WHEN iv.v_it_vd_conv = 'SIM' THEN 'Convênio'\n        WHEN iv.v_it_vd_conv = 'NAO' AND iv.n_vlr_desc > 0 THEN 'Promoção'\n        ELSE 'Sem Desconto'\n    END AS tipo_desconto,\n    CAST(iv.n_vlr_pis AS DECIMAL(38,2)) AS valor_pis_item,\n    CAST(iv.n_vlr_vd AS DECIMAL(38,2)) AS valor_final_item,\n    CAST(iv.n_vlr_desc AS DECIMAL(38,2)) AS valor_desconto_item,\n    CAST(iv.n_qtd AS BIGINT) AS quantidade_itens\nFROM itens_vendas_tmp as iv",
             "table_tmp": "itens_vendas_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "condition": "table_destino.codigo_filial = table_origem.codigo_filial AND table_destino.id_venda_filial = table_origem.id_venda_filial AND table_destino.codigo_item_venda = table_origem.codigo_item_venda",
             "match_filds": {
                 "processed": "true"
             }
@@ -94,27 +146,27 @@
                 "processed",
                 "creationDate"
             ],
-            "primary_key": "IdProcessamento",
-            "sql_create_id": "",
+            "primary_key": "id_pedido",
+            "sql_query": " -- 'Tabela pedidos parquet'\nSELECT \n    CAST(pd.n_id_pdd AS BIGINT) AS id_pedido,\n    COALESCE(CAST(pd.d_dt_eft_pdd AS DATE), '') AS data_realizacao_pedido,\n    COALESCE(date_format(pd.d_dt_entr_pdd, 'yyyy-MM-dd HH:mm:ss'), '') AS data_entrega,\n    CASE \n        WHEN pd.v_cnl_orig_pdd = 'L' THEN 'Loja'\n        WHEN pd.v_cnl_orig_pdd = 'A' THEN 'App'\n        WHEN pd.v_cnl_orig_pdd = 'S' THEN 'Site'\n    END AS canal_origem_pedido,\n    COALESCE(CAST(pd.v_uf_entr_pdd AS STRING), '') AS UF_pedido,\n    COALESCE(CAST(pd.v_lc_ent_pdd AS STRING), '') AS cidade_entrega,\n    CAST(pd.n_vlr_tot_pdd AS DECIMAL(38,2)) AS valor_total_pedido\nFROM pedidos_tmp as pd",
             "table_tmp": "pedidos_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "condition": "table_destino.id_pedido = table_origem.id_pedido",
             "match_filds": {
                 "processed": "true"
             }
         },
-        "pedido_Vendas": {
+        "pedido_venda": {
             "insert_fields": [
                 "processed",
                 "creationDate"
             ],
-            "primary_key": "IdProcessamento",
-            "sql_create_id": "",
-            "table_tmp": "pedido_Vendas_tmp",
+            "primary_key": ["codigo_filial", "id_venda_filial", "id_pedido"],
+            "sql_query": " -- 'Tabela pedido venda .parquet'\nSELECT \n    CAST(pv.n_id_fil AS BIGINT) AS codigo_filial,\n    CAST(pv.n_id_vd_fil AS BIGINT) AS id_venda_filial,\n    CAST(pv.n_id_pdd AS BIGINT) AS id_pedido\nFROM pedido_venda_tmp as pv",
+            "table_tmp": "pedido_venda",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "condition": "table_destino.codigo_filial = table_origem.codigo_filial AND table_destino.id_venda_filial = table_origem.id_venda_filial AND table_destino.id_pedido = table_origem.id_pedido",
             "match_filds": {
                 "processed": "true"
             }
@@ -124,18 +176,18 @@
                 "processed",
                 "creationDate"
             ],
-            "primary_key": "IdProcessamento",
-            "sql_create_id": "",
+            "primary_key": ["codigo_filial", "id_venda_filial"],
+            "sql_query": " -- 'Tabela Vendas parquet'\nSELECT \n    COALESCE(date_format(vt.d_dt_vd, 'yyyy-MM-dd HH:mm:ss'), '') AS data_emissao,\n    CAST(vt.n_id_fil AS BIGINT) AS codigo_filial,\n    CAST(vt.n_id_vd_fil AS BIGINT) AS id_venda_filial,\n    COALESCE(CAST(vt.v_cli_cod AS STRING), '') AS codigo_cliente,\n    CAST(vt.n_vlr_tot_vd AS DECIMAL(38, 2)) AS valor_total_venda,\n    CAST(vt.n_vlr_tot_desc AS DECIMAL(38, 2)) AS valor_total_desconto,\n    CASE \n        WHEN vt.v_cpn_eml  = 'SIM' THEN True\n        ELSE False\n    END AS enviado_email,\n    COALESCE(CAST(vt.tp_pgt AS STRING), '') AS tipo_pagamento\nFROM vendas_tmp as vt",
             "table_tmp": "vendas_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.IdProcessamento = table_origem.IdProcessamento",
+            "condition": "table_destino.codigo_filial = table_origem.codigo_filial AND table_destino.id_venda_filial = table_origem.id_venda_filial",
             "match_filds": {
                 "processed": "true"
             }
         }
     },
-    "gold_operations": {
+    "consumer_operations": {
         "vendas_consolidada": {
             "join_operations": {
                 "tables": [
@@ -147,7 +199,7 @@
             },
             "table_name": "vendas_consolidada",
             "table_step": {
-                "raww": "raw",
+                "refined": "refined",
                 "consumer": "consumer"
             },
             "primary_key": ["codigo_filial", "codigo_cupom_venda"],
@@ -158,18 +210,18 @@
             "match_filds": {
                 "processed": "true"
             },
-            "upsert_silver": "false"
+            "upsert_refined": "false"
         },
-        "clientes_Consolidada": {
+        "clientes_consolidada": {
             "join_operations": {
                 "tables": [
                     "clientes",
                     "clientes_opt"
                 ]
             },
-            "table_name": "clientes_Consolidada",
+            "table_name": "clientes_consolidada",
             "table_step": {
-                "raww": "raw",
+                "refined": "refined",
                 "consumer": "consumer"
             },
             "primary_key": "codigo_cliente",
@@ -180,7 +232,7 @@
             "match_filds": {
                 "processed": "true"
             },
-            "upsert_silver": "false"
+            "upsert_refined": "false"
         }
     }
 }

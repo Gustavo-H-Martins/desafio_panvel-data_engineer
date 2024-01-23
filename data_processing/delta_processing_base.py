@@ -9,6 +9,7 @@ from pyspark.sql import DataFrame
 from tablehandler import TableHandler
 import logs
 from configuracoes import formatar_sql
+import shutil
 
 formato_mensagem = f'{__name__}'
 logger = logs.criar_log(formato_mensagem)
@@ -35,7 +36,7 @@ class DeltraProcessing:
         self.spark.sparkContext.setLogLevel("ERROR")
         self.param = {}
         self.kwargs_param(**kwargs)
-        self.tablehandler_raw = TableHandler(self.spark)
+        self.tablehandler_refined = TableHandler(self.spark)
         self.keys = []
 
     def kwargs_param(self, **kwargs):
@@ -47,6 +48,7 @@ class DeltraProcessing:
             'format_in': 'parquet',
             'upsert': True,
             'upsert_delete': False,
+            'multiline': True
         }
         self.param.update(kwargs)
         self.keys = list(self.param.keys())
@@ -101,17 +103,18 @@ class DeltraProcessing:
         # Removendo os duplicados com base no _id criado na sql query
         chave_primaria = operacao[nome_tabela]["primary_key"]
         df = df.dropDuplicates(subset=[chave_primaria])
-        self.spark.catalogs.dropTempView(tabela_temporaria)
+        self.spark.catalog.dropTempView(tabela_temporaria)
         return df
     
 # Definindo a classe crua
-class DeltaProcessingRaw(DeltraProcessing):
-    def run_raw(self, nome_tabela:str, operacao:dict, sql_query:str= "sql_create_id", **kwargs):
+class DeltaProcessingRefined(DeltraProcessing):
+    def run_refined(self, nome_tabela:str, operacao_delta:dict, operacao_transient:dict, sql_query:str= "sql_query", **kwargs):
         """
         Executa o procesamento da camada crua em uma tabela específica
         Parâmetros:
             - `nome_tabela`: Nome da tabela que será procesada
-            - `operacao`: Dicionário com as operações da camada raw
+            - `operacao_delta`: Dicionário com as operações da camada refined
+            - `operacao_transient`: Dicionário com as operações da camada transient
             - `sql_query`: Query sql do método `run_query` que será executada
         """
 
@@ -119,17 +122,18 @@ class DeltaProcessingRaw(DeltraProcessing):
         self.kwargs_param(**kwargs)
 
         # Instanciando o log do método
-        formato_mensagem = f"{DeltaProcessingRaw.__name__}.{self.run_raw.__name__}"
+        formato_mensagem = f"{DeltaProcessingRefined.__name__}.{self.run_refined.__name__}"
         logger = logs.criar_log(formato_mensagem)
         
-        logger.info(f"Iniciando execução da camada raw: {nome_tabela}")
+        logger.info(f"Iniciando execução da camada refined: {nome_tabela}")
 
         # Declarando localização das bases
-        diretorio_transient = f"{self.ambiente_dados['transient']}/{nome_tabela.upper()}/"
+        diretorio_transient = os.path.abspath(os.path.join(os.path.dirname(__file__),"..", f"{self.ambiente_dados['transient']}/{nome_tabela.upper()}/")) # Para rodar em cloud precisaremos alterar esse campo para buscar o repositório remoto
         logger.info(f"Diretório Transient: {diretorio_transient}")
-        diretorio_raw = f"{self.ambiente_dados['raw']}/{nome_tabela.upper()}/"
-        logger.info(f"Diretório Raw: {diretorio_raw}")
-        transient_options = {'header': 'true', 'inferSchema': 'true', 'format_out': 'delta', 'mode': 'overwrite', 'format_in': 'avro', 'upsert': True, 'upsert_delete': False}
+        diretorio_refined = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", f"{self.ambiente_dados['refined']}/{nome_tabela.upper()}/")) # Para rodar em cloud precisaremos alterar esse campo para buscar o repositório remoto
+        logger.info(f"Diretório Refined: {diretorio_refined}")
+        transient_options = {"upsert": True, "upsert_delete": False}
+        transient_options.update(operacao_transient)
         # Lendo a camada transient
         tabela_transient = TableHandler(self.spark)
 
@@ -143,24 +147,26 @@ class DeltaProcessingRaw(DeltraProcessing):
         
         # Chamando o método para executar a query sql da camada crua
         try:
-            dataframe = self.run_query(df=dataframe, nome_tabela=nome_tabela, operacao=operacao, sql_query=sql_query)
+            dataframe = self.run_query(df=dataframe, nome_tabela=nome_tabela, operacao=operacao_delta, sql_query=sql_query)
         except Exception as e:
-            retorno_erro_raw = f"Erro na execução da query sql para camada raw da base {nome_tabela}: {'Diretório Vazio'  if 'Path does not exist' in str(e) else str(e)} - Base Ignorada"
-            logger.warning(retorno_erro_raw)
-            return retorno_erro_raw
+            retorno_erro_refined = f"Erro na execução da query sql para camada refined da base {nome_tabela}: {'Diretório Vazio'  if 'Path does not exist' in str(e) else str(e)} - Base Ignorada"
+            logger.warning(retorno_erro_refined)
+            return retorno_erro_refined
         
-        # Criando a camada raw se ela não existir, ou realizando o upsert caso já exista
-        self.tablehandler_raw.set_deltatable_path(diretorio_raw)
-        if not self.tablehandler_raw.is_deltatable():
-            self.tablehandler_raw.write_table(dataframe=dataframe, path=diretorio_raw, options=self.param)
+        # Criando a camada refined se ela não existir, ou realizando o upsert caso já exista
+        self.tablehandler_refined.set_deltatable_path(diretorio_refined)
+        if not self.tablehandler_refined.is_deltatable():
+            self.tablehandler_refined.write_table(dataframe=dataframe, path=diretorio_refined, options=self.param)
         else:
-            rotulo_origem = operacao[nome_tabela]["label_orig"]
-            rotulo_destino = operacao[nome_tabela]["label_destino"]
-            condicoes = operacao[nome_tabela]["condition"]
-            self.tablehandler_raw.upsert_deltatable(dataframe=dataframe, label_origem=rotulo_origem, label_destino=rotulo_destino, condupdate=condicoes)
+            rotulo_origem = operacao_delta[nome_tabela]["label_orig"]
+            rotulo_destino = operacao_delta[nome_tabela]["label_destino"]
+            condicoes = operacao_delta[nome_tabela]["condition"]
+            self.tablehandler_refined.upsert_deltatable(dataframe=dataframe, label_origem=rotulo_origem, label_destino=rotulo_destino, condupdate=condicoes)
 
         dataframe.unpersist()
-        retorno_sucesso_raw = f"Camada Raw da tabela {nome_tabela} - Concluída com Sucesso!"
-        logger.info(retorno_sucesso_raw)
+        retorno_sucesso_refined = f"Camada Refined da tabela {nome_tabela} - Concluída com Sucesso!"
+        logger.info(retorno_sucesso_refined)
 
-        return retorno_sucesso_raw
+        shutil.move(diretorio_transient,  os.path.abspath(os.path.join(os.path.dirname(__file__),"..", f"{self.ambiente_dados['transient']}/TRANSIENTFILES/{nome_tabela.upper()}")))
+
+        return retorno_sucesso_refined

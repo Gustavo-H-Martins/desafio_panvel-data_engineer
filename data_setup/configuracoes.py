@@ -18,14 +18,14 @@ def buscar_dados_vcpu_so() ->  tuple:
     """Busca informações do sistema operacional relacionados a CPU
     Retorno:
         - `nucleos_cpu`: Número de núcleos lógicos da máquina
-        - `memoria_gb`: Retorna 80% da memória para uso do spark
+        - `memoria_gb`: Retorna 70% da memória para uso do spark
     """
     # Obtém o número total de núcleos (físicos + virtuais)
     nucleos_cpu = psutil.cpu_count(logical=True)
 
     # Obtém total de memória em em bits, calcula e retorna em GB
     mem_info = psutil.virtual_memory()
-    memoria_gb = int(mem_info.total / (1024 ** 3) * 0.80 )
+    memoria_gb = int(mem_info.total / (1024 ** 3) * 0.70 )
 
     return nucleos_cpu, memoria_gb
 
@@ -109,3 +109,22 @@ def formatar_sql(query:str):
     """ Retorna a query no formato padrão SQL"""
     query_sql = sqlparse.format(query, reindent=True, keyword_case="upper")
     return query_sql
+
+
+def obter_ip_publico() -> str:
+    """Essa função tenta enviar um endereço para monitoramento do spark no webUI"""
+    try:
+        resposta = requests.get('https://httpbin.org/ip')
+        ip_publico = resposta.json()['origin']
+        logger.info(f'O endereço IP público da máquina é: {ip_publico}')
+        logger.info(f"Tenta acessar: http://{ip_publico}:4040")
+    except Exception as e:
+        logger.info(f'Erro ao obter o endereço IP público: {e}')
+    try: 
+        host_name = socket.gethostname() 
+        host_ip = socket.gethostbyname(host_name) 
+        logger.info(f"Nome do computador :  {host_name}") 
+        logger.info(f"IP do computador : {host_ip}") 
+        logger.info(f"Tenta acessar: http://{host_ip}:4040")
+    except Exception as e: 
+        logger.info(f'Erro ao obter o endereço IP público: {e}')

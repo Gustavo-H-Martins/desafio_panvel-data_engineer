@@ -5,6 +5,10 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "delta_setup")))
 import data_setup.logs as logs
 
+
+formato_mensagem = f'{__name__}'
+logger = logs.criar_log(formato_mensagem)
+
 class TableHandler(object):
     """ Instancia tabelas para operacoes de leitura, escrita, upsert
     """
@@ -40,9 +44,12 @@ class TableHandler(object):
         """ Faz testes se o caminho possui uma tabela delta armazenada ou não 
         = Retorno: True se for uma deltatable caso contrário retorna false
         """
-        is_table = DeltaTable.isDeltaTable(self.spark, self._local_path)
-        if is_table:
+        try:
+            is_table = DeltaTable.isDeltaTable(self.spark, self._local_path)
             self._set_deltatable()
+        except Exception as e:
+            is_table = False
+            logger.warning(f"O diretório `{self._local_path}` não é Delta")
 
         return is_table
 
@@ -66,11 +73,17 @@ class TableHandler(object):
         if options['format_in'] in self.__pyspark_format_available and \
                 options['header'] in self.__bool_available and \
                 options['inferSchema'] in self.__bool_available:
-
-            table = self.spark.read.format(options['format_in']) \
-                .option('inferSchema', options['inferSchema']) \
-                .option('header', options['header']) \
-                .load(path)
+            if "json" in options['format_in']:
+                table = self.spark.read.format(options['format_in']) \
+                    .option('inferSchema', options['inferSchema']) \
+                    .option('header', options['header']) \
+                    .option('multiline', options['multiline']) \
+                    .load(path)
+            else:
+                table = self.spark.read.format(options['format_in']) \
+                    .option('inferSchema', options['inferSchema']) \
+                    .option('header', options['header']) \
+                    .load(path)
         else:
             logs.criar_log(fmsg).error(f"Unsupported format {self.__pyspark_format_available}  or "
                                          f"header differ from {self.__bool_available} or "
