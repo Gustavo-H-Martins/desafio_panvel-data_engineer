@@ -100,10 +100,26 @@ class DeltraProcessing:
         # Inserindo as colunas processed com False e creationDate com a data de hoje
         df = df.withColumn("processed", functions.lit(False)) \
             .withColumn("creationDate", functions.lit(functions.current_timestamp()))
+        self.spark.catalog.dropTempView(tabela_temporaria)
+
         # Removendo os duplicados com base no _id criado na sql query
         chave_primaria = operacao[nome_tabela]["primary_key"]
-        df = df.dropDuplicates(subset=[chave_primaria])
-        self.spark.catalog.dropTempView(tabela_temporaria)
+        
+        # -- pausando aqui só pra testar a possibilidade abaixo (pelos tipos de dados)
+        # df = df.dropDuplicates(subset=[chave_primaria])
+        # 
+
+        # Removendo os duplicados com base na chave primária
+        df.createOrReplaceTempView(tabela_temporaria)
+        if isinstance(chave_primaria, list):
+            self.spark.sql(f"SELECT DISTINCT {', '.join(chave_primaria)} FROM {tabela_temporaria}").createOrReplaceTempView("temp_view")
+            df = self.spark.sql(f"SELECT * FROM {tabela_temporaria} WHERE ({', '.join(chave_primaria)}) IN (SELECT * FROM temp_view)")
+            self.spark.catalog.dropTempView(tabela_temporaria)
+        else:
+            self.spark.sql(f"SELECT DISTINCT {chave_primaria} FROM {tabela_temporaria}").createOrReplaceTempView("temp_view")
+            df = self.spark.sql(f"SELECT * FROM {tabela_temporaria} WHERE ({chave_primaria}) IN (SELECT * FROM temp_view)")
+            self.spark.catalog.dropTempView(tabela_temporaria)
+
         return df
     
 # Definindo a classe crua
