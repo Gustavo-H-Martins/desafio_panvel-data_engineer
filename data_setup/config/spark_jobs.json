@@ -42,7 +42,7 @@
                 "mode": "overwrite",
                 "format_in": "parquet"
         },
-        "pedido_Vendas": {
+        "pedido_venda": {
                 "header": "true",
                 "inferSchema": "true",
                 "format_out": "delta",
@@ -73,7 +73,7 @@
         "pedidos": {
             "format": "parquet"
         },
-        "pedido_Vendas": {
+        "pedido_venda": {
             "format": "parquet"
         },
         "vendas": {
@@ -163,7 +163,7 @@
             ],
             "primary_key": ["codigo_filial", "id_venda_filial", "id_pedido"],
             "sql_query": " -- 'Tabela pedido venda .parquet'\nSELECT \n    CAST(pv.n_id_fil AS BIGINT) AS codigo_filial,\n    CAST(pv.n_id_vd_fil AS BIGINT) AS id_venda_filial,\n    CAST(pv.n_id_pdd AS BIGINT) AS id_pedido\nFROM pedido_venda_tmp as pv",
-            "table_tmp": "pedido_venda",
+            "table_tmp": "pedido_venda_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
             "condition": "table_destino.codigo_filial = table_origem.codigo_filial AND table_destino.id_venda_filial = table_origem.id_venda_filial AND table_destino.id_pedido = table_origem.id_pedido",
