@@ -40,38 +40,27 @@ def buscar_hora_agora() -> str:
     return agora.strftime('%d-%m-%Y %H:%M:%S')
 
 
-def definir_variaveis_ambiente() -> None:
+def definir_variaveis_ambiente()-> None:
     """
     O objetivo é definir variáveis de ambiente necessárias para a configuração do 
     ambiente de execução do Spark.
     """
-    # Define o diretório dos Jars
-    jars_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..","jars"))
-
     # Define o diretório do executável e o executável
     caminho_python = sys.executable
-    
     diretorio_python = sys.exec_prefix
 
-    # Adiciona a variável `SPARK_HOME` e `HADOOP_HOME`
-    spark_home = os.path.abspath(os.path.join(jars_dir, "spark/spark-3.4.0-bin-hadoop3"))
-    os.environ["SPARK_HOME"] = spark_home
-
-    hadoop_home = os.path.abspath(os.path.join(jars_dir, "hadoop"))
-    os.environ["HADOOP_HOME"] = hadoop_home
-
+    # Pega a variável`SPARK_HOME`
+    spark_home = os.environ.get('SPARK_HOME')
     # Define o caminho para o `py4j-0.10.9.7-src.zip`
-    py4j_path = os.path.join(spark_home, "python", "lib", "py4j-0.10.9.7-src.zip")
-
-    
+    py4j_path = os.path.join(spark_home, "python\lib\py4j-0.10.9.7-src.zip")
 
     # Define o python Path
     pythonpath = os.environ.get("PYTHONPATH", "")
-    pythonpath = f"{spark_home}/python;{py4j_path};{jars_dir};{pythonpath}"
-
-    # Inputa o `SPARK_HOME`, `HADOOP_HOME`, e `PYTHONPATH` na variável `PATH`
+    pythonpath = f"{spark_home}/python;{py4j_path};{pythonpath}"
+    
+    # Inputa o `SPARK_HOME` e `PYTHONPATH` na variável `PATH`
     path = os.environ.get("PATH", "")
-    path = f"{spark_home}/bin:{spark_home}/python:{hadoop_home}/bin:{path}"
+    path = f"{spark_home}/bin:{spark_home}/python:{path}"
 
     os.environ["PATH"] = path
 
@@ -79,7 +68,6 @@ def definir_variaveis_ambiente() -> None:
     os.environ["PYTHONPATH"] = pythonpath
     os.environ['PYSPARK_PYTHON'] = caminho_python
     os.environ['PYSPARK_DRIVER_PYTHON'] = caminho_python
-
 
 def limpar_diretorio_temporario() -> None:
     """

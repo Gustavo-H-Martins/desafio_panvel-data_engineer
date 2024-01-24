@@ -24,3 +24,4 @@ Pipfile.lock
 __pycache__/
 jars/hadoop/
 jars/spark/
+jars/java/
