@@ -5,7 +5,7 @@ from utils import formatar_sql, criar_log
 from pyspark.sql import functions
 from pyspark.sql.functions import col, to_date, to_timestamp
 from pyspark.sql import DataFrame
-from delta_processing import TableHandler
+from jobs.delta_processing import TableHandler
 import shutil
 
 formato_mensagem = f'{__name__}'
@@ -142,9 +142,9 @@ class DeltaProcessingBronze(DeltraProcessing):
         logger.info(f"Iniciando execução da camada bronze: {nome_tabela}")
 
         # Declarando localização das bases
-        diretorio_transient = os.path.abspath(os.path.join(os.path.dirname(__file__),"..", f"{self.ambiente_dados['transient']}/{nome_tabela.upper()}/")) # Para rodar em cloud precisaremos alterar esse campo para buscar o repositório remoto
+        diretorio_transient = os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..", f"{self.ambiente_dados['transient']}/{nome_tabela.upper()}/")) # Para rodar em cloud precisaremos alterar esse campo para buscar o repositório remoto
         logger.info(f"Diretório Transient: {diretorio_transient}")
-        diretorio_bronze = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", f"{self.ambiente_dados['bronze']}/{nome_tabela.upper()}/")) # Para rodar em cloud precisaremos alterar esse campo para buscar o repositório remoto
+        diretorio_bronze = os.path.abspath(os.path.join(os.path.dirname(__file__), "..","..", f"{self.ambiente_dados['bronze']}/{nome_tabela.upper()}/")) # Para rodar em cloud precisaremos alterar esse campo para buscar o repositório remoto
         logger.info(f"Diretório Bronze: {diretorio_bronze}")
         transient_options = {"upsert": True, "upsert_delete": False}
         transient_options.update(operacao_transient)
@@ -183,7 +183,7 @@ class DeltaProcessingBronze(DeltraProcessing):
         retorno_sucesso_bronze = f"Processamento Camada Bronze da tabela {nome_tabela} - Concluída com Sucesso!"
         logger.info(retorno_sucesso_bronze)
 
-        shutil.move(diretorio_transient,  os.path.abspath(os.path.join(os.path.dirname(__file__),"..", f"{self.ambiente_dados['transient']}/TRANSIENTFILES/{nome_tabela.upper()}")))
+        shutil.move(diretorio_transient,  os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..", f"{self.ambiente_dados['transient']}/TRANSIENTFILES/{nome_tabela.upper()}")))
 
         return retorno_sucesso_bronze
     
@@ -207,8 +207,8 @@ class DeltaProcessingSilver(DeltraProcessing):
         logger.info(f"Iniciando a camada silver da tabela: {nome_tabela}")
 
         # Declarando os locais da silver e bronze
-        diretorio_bronze = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", f"{self.ambiente_dados['bronze']}/{nome_tabela.upper()}/")) # Para rodar em cloud precisaremos alterar esse campo para buscar o repositório remoto
-        diretorio_silver = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", f"{self.ambiente_dados['silver']}/{nome_tabela.upper()}/")) # Para rodar em cloud precisaremos alterar esse campo para buscar o repositório remoto
+        diretorio_bronze = os.path.abspath(os.path.join(os.path.dirname(__file__), "..","..", f"{self.ambiente_dados['bronze']}/{nome_tabela.upper()}/")) # Para rodar em cloud precisaremos alterar esse campo para buscar o repositório remoto
+        diretorio_silver = os.path.abspath(os.path.join(os.path.dirname(__file__), "..","..", f"{self.ambiente_dados['silver']}/{nome_tabela.upper()}/")) # Para rodar em cloud precisaremos alterar esse campo para buscar o repositório remoto
 
         # Verificando se a bronze já existe
         self.tablehandler_bronze.set_deltatable_path(diretorio_bronze)

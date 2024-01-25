@@ -3,7 +3,7 @@ findspark.init()
 import os
 from utils import criar_log, logs
 from delta.tables import DataFrame
-from delta_processing import TableHandler
+from jobs.delta_processing import TableHandler
 
 formato_mensagem = f'{__name__}'
 logger = criar_log(formato_mensagem)
@@ -89,7 +89,7 @@ class DeltaProcessingGold:
         if tablehandler_gold.is_deltatable():
             # Iterando entre as Silvers
             for index, valor in enumerate(operacoes["tables_silver"]["tables"]):
-                path_table = os.path.abspath(os.path.join(os.path.dirname(__file__),"..", f"{self.ambiente_dados[self.param['step']['silver']]}/{str(valor).upper()}/"))
+                path_table = os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..", f"{self.ambiente_dados[self.param['step']['silver']]}/{str(valor).upper()}/"))
                 tablehandler_silver = TableHandler(spark=self.spark, localpath=path_table)
 
                 deltatable_gold = tablehandler_gold.get_deltatable()
@@ -121,7 +121,7 @@ class DeltaProcessingGold:
         
         # Iterando sobre as bases silver e criando as views SQL para cada uma, e removendo dataframe da memoria
         for index, tabela in enumerate(tabelas):
-            path_table = os.path.abspath(os.path.join(os.path.dirname(__file__),"..", f"{self.ambiente_dados[self.param['step']['silver']]}/{str(tabela).upper()}/"))
+            path_table = os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..", f"{self.ambiente_dados[self.param['step']['silver']]}/{str(tabela).upper()}/"))
             self.tablehandler.set_deltatable_path(path_table)
             self.deltatables.append(self.tablehandler.get_deltatable().toDF())
             self.views.append(self.deltatables[index].createOrReplaceTempView(tabela))
@@ -152,7 +152,7 @@ class DeltaProcessingGold:
             self.spark.catalog.dropTempView(nome)
 
         # Caminho em que a gold será salva
-        diretorio_gold = os.path.abspath(os.path.join(os.path.dirname(__file__),"..", f"{self.ambiente_dados[self.param['step']['gold']]}/{str(nome_tabela).upper()}/"))
+        diretorio_gold = os.path.abspath(os.path.join(os.path.dirname(__file__),"..", "..", f"{self.ambiente_dados[self.param['step']['gold']]}/{str(nome_tabela).upper()}/"))
 
         try:
             self.save_update_table(sql_df=dataframe, operacoes=operacoes, diretorio=diretorio_gold)

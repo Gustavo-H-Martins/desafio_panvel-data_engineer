@@ -2,7 +2,7 @@ import os
 import json
 
 # Mapeia e carrega os parâmetros no dicionário json
-file_json = os.path.abspath(os.path.join(os.path.dirname(__file__), "config/spark_jobs.json"))
+file_json = os.path.abspath(os.path.join(os.path.dirname(__file__), ".." , "config/spark_jobs.json"))
 
 with open(file=file_json, mode="r") as dict_file:
     config = json.loads(dict_file.read())

@@ -3,15 +3,12 @@ import sys
 import psutil
 import datetime
 import pytz
-import logs
+import logging
 import tempfile
 import shutil
 import requests
 import socket
 import sqlparse
-
-formato_mensagem = f'{__name__}'
-logger = logs.criar_log(formato_mensagem)
 
 def buscar_dados_vcpu_so() ->  tuple:
     """Busca informações do sistema operacional relacionados a CPU
@@ -90,7 +87,7 @@ def limpar_diretorio_temporario() -> None:
                     # Remove o diretório
                     shutil.rmtree(path=caminho)
             except Exception as e:
-                logger.info(f"Erro ao deletar {caminho}: {e}")
+                logging.info(f"Erro ao deletar {caminho}: {e}")
 
 def formatar_sql(query:str):
     """ Retorna a query no formato padrão SQL"""
@@ -103,15 +100,15 @@ def obter_ip_publico() -> str:
     try:
         resposta = requests.get('https://httpbin.org/ip')
         ip_publico = resposta.json()['origin']
-        logger.info(f'O endereço IP público da máquina é: {ip_publico}')
-        logger.info(f"Tenta acessar: http://{ip_publico}:4040")
+        logging.info(f'O endereço IP público da máquina é: {ip_publico}')
+        logging.info(f"Tenta acessar: http://{ip_publico}:4040")
     except Exception as e:
-        logger.info(f'Erro ao obter o endereço IP público: {e}')
+        logging.info(f'Erro ao obter o endereço IP público: {e}')
     try: 
         host_name = socket.gethostname() 
         host_ip = socket.gethostbyname(host_name) 
-        logger.info(f"Nome do computador :  {host_name}") 
-        logger.info(f"IP do computador : {host_ip}") 
-        logger.info(f"Tenta acessar: http://{host_ip}:4040")
+        logging.info(f"Nome do computador :  {host_name}") 
+        logging.info(f"IP do computador : {host_ip}") 
+        logging.info(f"Tenta acessar: http://{host_ip}:4040")
     except Exception as e: 
-        logger.info(f'Erro ao obter o endereço IP público: {e}')
+        logging.info(f'Erro ao obter o endereço IP público: {e}')
