@@ -2,8 +2,8 @@
     "datalake_paths": {
         "transient": "./datalake/camada_0_transient",
         "datalake": "./datalake",
-        "refined": "./datalake/camada_1_bronze",
-        "consumer": "./datalake/camada_2_silver",
+        "bronze": "./datalake/camada_1_bronze",
+        "silver": "./datalake/camada_2_silver",
         "gold": "./datalake/camada_3_gold"
     },
     "transient_config_dict": {
@@ -87,13 +87,13 @@
                 "processed",
                 "creationDate"
             ],
-            "primary_key": "codigo_cliente",
-            "bronze_query": "/* 'Bronze' */\nSELECT \n        v_id_cli,\n\td_dt_nasc,\n\tv_sx_cli,\n\tn_est_cvl \nFROM clientes_tmp\n",
-            "silver_query": "/* 'Silver' */\nSELECT CAST(c.v_id_cli AS STRING) AS codigo_cliente,\n       COALESCE(CAST(c.d_dt_nasc AS DATE), '') AS data_nascimento_cliente,\n       CASE\n           WHEN c.v_sx_cli = 'F' THEN 'Feminino'\n           WHEN c.v_sx_cli = 'M' THEN 'Masculino'\n           ELSE ''\n       END AS genero_biologico_cliente,\n       CASE\n           WHEN c.n_est_cvl = 1 THEN 'Solteiro'\n           WHEN c.n_est_cvl = 2 THEN 'Casado'\n           WHEN c.n_est_cvl = 3 THEN 'Viúvo'\n           WHEN c.n_est_cvl = 4 THEN 'Desquitado'\n           WHEN c.n_est_cvl = 5 THEN 'Divorciado'\n           WHEN c.n_est_cvl = 6 THEN 'Outros'\n           ELSE ''\n       END AS estado_civil_cliente\nFROM clientes_tmp AS c",
+            "primary_key": "hash_id",
+            "bronze_query": "/* 'Bronze' */\nSELECT \n        v_id_cli,\n\td_dt_nasc,\n\tv_sx_cli,\n\tn_est_cvl, \nBASE64(CAST(v_id_cli AS STRING)) AS hash_id \nFROM clientes_tmp\n",
+            "silver_query": "/* 'Silver' */\nSELECT CAST(c.v_id_cli AS STRING) AS codigo_cliente,\n       COALESCE(CAST(c.d_dt_nasc AS DATE), '') AS data_nascimento_cliente,\n       CASE\n           WHEN c.v_sx_cli = 'F' THEN 'Feminino'\n           WHEN c.v_sx_cli = 'M' THEN 'Masculino'\n           ELSE ''\n       END AS genero_biologico_cliente,\n       CASE\n           WHEN c.n_est_cvl = 1 THEN 'Solteiro'\n           WHEN c.n_est_cvl = 2 THEN 'Casado'\n           WHEN c.n_est_cvl = 3 THEN 'Viúvo'\n           WHEN c.n_est_cvl = 4 THEN 'Desquitado'\n           WHEN c.n_est_cvl = 5 THEN 'Divorciado'\n           WHEN c.n_est_cvl = 6 THEN 'Outros'\n           ELSE ''\n       END AS estado_civil_cliente,\n hash_id \nFROM clientes_tmp AS c",
             "table_tmp": "clientes_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.codigo_cliente = table_origem.codigo_cliente",
+            "condition": "table_destino.hash_id = table_origem.hash_id",
             "match_filds": {
                 "processed": "true"
             }
@@ -103,13 +103,13 @@
                 "processed",
                 "creationDate"
             ],
-            "primary_key": "codigo_cliente",
-            "bronze_query": "/* 'Bronze' */\nSELECT \n        b_call,\n\tb_email,\n\tb_push,\n\tb_sms,\n\tv_id_cli \nFROM clientes_opt_tmp",
-            "silver_query": "/* 'Silver' */\nSELECT CAST(co.v_id_cli AS STRING) AS codigo_cliente,\n       CASE\n           WHEN co.b_push = TRUE THEN 'SIM'\n           WHEN co.b_push = FALSE THEN 'NÃO'\n           ELSE ''\n       END AS autoriza_notificacao_push,\n       CASE\n           WHEN co.b_sms = TRUE THEN 'SIM'\n           WHEN co.b_sms = FALSE THEN 'NÃO'\n           ELSE ''\n       END AS autoriza_notificacao_sms,\n       CASE\n           WHEN co.b_email = TRUE THEN 'SIM'\n           WHEN co.b_email = FALSE THEN 'NÃO'\n           ELSE ''\n       END AS autoriza_notificacao_email,\n       CASE\n           WHEN co.b_call = TRUE THEN 'SIM'\n           WHEN co.b_call = FALSE THEN 'NÃO'\n           ELSE ''\n       END AS autoriza_notificacao_ligacao\nFROM clientes_opt_tmp AS co",
+            "primary_key": "hash_id",
+            "bronze_query": "/* 'Bronze' */\nSELECT \n        b_call,\n\tb_email,\n\tb_push,\n\tb_sms,\n\tv_id_cli, \nBASE64(CAST(v_id_cli AS STRING)) AS hash_id \nFROM clientes_opt_tmp",
+            "silver_query": "/* 'Silver' */\nSELECT CAST(co.v_id_cli AS STRING) AS codigo_cliente,\n       CASE\n           WHEN co.b_push = TRUE THEN 'SIM'\n           WHEN co.b_push = FALSE THEN 'NÃO'\n           ELSE ''\n       END AS autoriza_notificacao_push,\n       CASE\n           WHEN co.b_sms = TRUE THEN 'SIM'\n           WHEN co.b_sms = FALSE THEN 'NÃO'\n           ELSE ''\n       END AS autoriza_notificacao_sms,\n       CASE\n           WHEN co.b_email = TRUE THEN 'SIM'\n           WHEN co.b_email = FALSE THEN 'NÃO'\n           ELSE ''\n       END AS autoriza_notificacao_email,\n       CASE\n           WHEN co.b_call = TRUE THEN 'SIM'\n           WHEN co.b_call = FALSE THEN 'NÃO'\n           ELSE ''\n       END AS autoriza_notificacao_ligacao,\nhash_id\nFROM clientes_opt_tmp AS co",
             "table_tmp": "clientes_opt_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.codigo_cliente = table_origem.codigo_cliente",
+            "condition": "table_destino.hash_id = table_origem.hash_id",
             "match_filds": {
                 "processed": "true"
             }
@@ -119,13 +119,13 @@
                 "processed",
                 "creationDate"
             ],
-            "primary_key": ["codigo_cliente", "sequencia_endereco_cliente"],
-            "bronze_query": "/* 'Bronze' */\nSELECT \n        v_id_cli,\n\tn_sq_end,\n\td_dt_exc,\n\tv_lcl,\n\tv_uf \nFROM enderecos_clientes_tmp\n",
-            "silver_query": "/* 'Silver' */\nSELECT CAST(ec.v_id_cli AS STRING) AS codigo_cliente,\n       CAST(ec.n_sq_end AS BIGINT) AS sequencia_endereco_cliente,\n       COALESCE(date_format(ec.d_dt_exc, 'yyyy-MM-dd HH:mm:ss'), '') AS data_exclusao_endereco,\n       CAST(ec.v_lcl AS STRING) AS cidade_endereco,\n       CAST(ec.v_uf AS STRING) AS UF_endereco\nFROM enderecos_clientes_tmp AS ec",
+            "primary_key": "hash_id",
+            "bronze_query": "/* 'Bronze' */\nSELECT \n        v_id_cli,\n\tn_sq_end,\n\td_dt_exc,\n\tv_lcl,\n\tv_uf, \nBASE64(CONCAT(CAST(v_id_cli AS STRING),CAST(n_sq_end AS STRING)) AS hash_id \nFROM enderecos_clientes_tmp\n",
+            "silver_query": "/* 'Silver' */\nSELECT CAST(ec.v_id_cli AS STRING) AS codigo_cliente,\n       CAST(ec.n_sq_end AS BIGINT) AS sequencia_endereco_cliente,\n       COALESCE(date_format(ec.d_dt_exc, 'yyyy-MM-dd HH:mm:ss'), '') AS data_exclusao_endereco,\n       CAST(ec.v_lcl AS STRING) AS cidade_endereco,\n       CAST(ec.v_uf AS STRING) AS UF_endereco,\nhash_id\nFROM enderecos_clientes_tmp AS ec",
             "table_tmp": "enderecos_clientes_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.codigo_cliente = table_origem.codigo_cliente AND table_destino.sequencia_endereco_cliente = table_origem.sequencia_endereco_cliente",
+            "condition": "table_destino.hash_id = table_origem.hash_id",
             "match_filds": {
                 "processed": "true"
             }
@@ -135,13 +135,13 @@
                 "processed",
                 "creationDate"
             ],
-            "primary_key": ["codigo_filial", "id_venda_filial", "codigo_item_venda"],
-            "bronze_query": "/* 'Bronze' */\nSELECT \n        n_id_fil,\n\tn_id_vd_fil,\n\tn_id_it,\n\tv_rc_elt,\n\tv_it_vd_conv,\n\tn_vlr_pis,\n\tn_vlr_vd,\n\tn_vlr_desc,\n\tn_qtd \nFROM itens_vendas_tmp\n",
-            "silver_query": "/* 'Silver' */\nSELECT CAST(iv.n_id_fil AS BIGINT) AS codigo_filial,\n       CAST(iv.n_id_vd_fil AS BIGINT) AS id_venda_filial,\n       CAST(iv.n_id_it AS BIGINT) AS codigo_item_venda,\n       CASE\n           WHEN iv.v_rc_elt = 'SIM' THEN TRUE\n           ELSE FALSE\n       END AS com_receita_eletronica,\n       CASE\n           WHEN iv.v_it_vd_conv = 'SIM' THEN 'Convênio'\n           WHEN iv.v_it_vd_conv = 'NAO'\n                AND iv.n_vlr_desc > 0 THEN 'Promoção'\n           ELSE 'Sem Desconto'\n       END AS tipo_desconto,\n       CAST(iv.n_vlr_pis AS DECIMAL(38, 2)) AS valor_pis_item,\n       CAST(iv.n_vlr_vd AS DECIMAL(38, 2)) AS valor_final_item,\n       CAST(iv.n_vlr_desc AS DECIMAL(38, 2)) AS valor_desconto_item,\n       CAST(iv.n_qtd AS BIGINT) AS quantidade_itens\nFROM itens_vendas_tmp AS iv",
+            "primary_key": "hash_id",
+            "bronze_query": "/* 'Bronze' */\nSELECT \n        n_id_fil,\n\tn_id_vd_fil,\n\tn_id_it,\n\tv_rc_elt,\n\tv_it_vd_conv,\n\tn_vlr_pis,\n\tn_vlr_vd,\n\tn_vlr_desc,\n\tn_qtd, \nBASE64(CONCAT(CAST(n_id_fil AS STRING), CAST(n_id_vd_fil AS STRING), CAST(n_id_it AS STRING))) AS hash_id \nFROM itens_vendas_tmp\n",
+            "silver_query": "/* 'Silver' */\nSELECT CAST(iv.n_id_fil AS BIGINT) AS codigo_filial,\n       CAST(iv.n_id_vd_fil AS BIGINT) AS id_venda_filial,\n       CAST(iv.n_id_it AS BIGINT) AS codigo_item_venda,\n       CASE\n           WHEN iv.v_rc_elt = 'SIM' THEN TRUE\n           ELSE FALSE\n       END AS com_receita_eletronica,\n       CASE\n           WHEN iv.v_it_vd_conv = 'SIM' THEN 'Convênio'\n           WHEN iv.v_it_vd_conv = 'NAO'\n                AND iv.n_vlr_desc > 0 THEN 'Promoção'\n           ELSE 'Sem Desconto'\n       END AS tipo_desconto,\n       CAST(iv.n_vlr_pis AS DECIMAL(38, 2)) AS valor_pis_item,\n       CAST(iv.n_vlr_vd AS DECIMAL(38, 2)) AS valor_final_item,\n       CAST(iv.n_vlr_desc AS DECIMAL(38, 2)) AS valor_desconto_item,\n       CAST(iv.n_qtd AS BIGINT) AS quantidade_itens, \nhash_id\nFROM itens_vendas_tmp AS iv",
             "table_tmp": "itens_vendas_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.codigo_filial = table_origem.codigo_filial AND table_destino.id_venda_filial = table_origem.id_venda_filial AND table_destino.codigo_item_venda = table_origem.codigo_item_venda",
+            "condition": "table_destino.hash_id = table_origem.hash_id",
             "match_filds": {
                 "processed": "true"
             }
@@ -151,13 +151,13 @@
                 "processed",
                 "creationDate"
             ],
-            "primary_key": "id_pedido",
-            "bronze_query": "/* 'Bronze' */\nSELECT \n        n_id_pdd,\n\td_dt_eft_pdd,\n\td_dt_entr_pdd,\n\tv_cnl_orig_pdd,\n\tv_uf_entr_pdd,\n\tv_lc_ent_pdd,\n\tn_vlr_tot_pdd \nFROM pedidos_tmp\n",
-            "silver_query": "/* 'Silver' */\nSELECT CAST(pd.n_id_pdd AS BIGINT) AS id_pedido,\n       COALESCE(CAST(pd.d_dt_eft_pdd AS DATE), '') AS data_realizacao_pedido,\n       COALESCE(date_format(pd.d_dt_entr_pdd, 'yyyy-MM-dd HH:mm:ss'), '') AS data_entrega,\n       CASE\n           WHEN pd.v_cnl_orig_pdd = 'L' THEN 'Loja'\n           WHEN pd.v_cnl_orig_pdd = 'A' THEN 'App'\n           WHEN pd.v_cnl_orig_pdd = 'S' THEN 'Site'\n       END AS canal_venda,\n       COALESCE(CAST(pd.v_uf_entr_pdd AS STRING), '') AS UF_pedido,\n       COALESCE(CAST(pd.v_lc_ent_pdd AS STRING), '') AS cidade_entrega,\n       CAST(pd.n_vlr_tot_pdd AS DECIMAL(38, 2)) AS valor_total_pedido\nFROM pedidos_tmp AS pd",
+            "primary_key": "hash_id",
+            "bronze_query": "/* 'Bronze' */\nSELECT \n        n_id_pdd,\n\td_dt_eft_pdd,\n\td_dt_entr_pdd,\n\tv_cnl_orig_pdd,\n\tv_uf_entr_pdd,\n\tv_lc_ent_pdd,\n\tn_vlr_tot_pdd, \nBASE64(CAST(n_id_pdd AS STRING)) AS hash_id\nFROM pedidos_tmp\n",
+            "silver_query": "/* 'Silver' */\nSELECT CAST(pd.n_id_pdd AS BIGINT) AS id_pedido,\n       COALESCE(CAST(pd.d_dt_eft_pdd AS DATE), '') AS data_realizacao_pedido,\n       COALESCE(date_format(pd.d_dt_entr_pdd, 'yyyy-MM-dd HH:mm:ss'), '') AS data_entrega,\n       CASE\n           WHEN pd.v_cnl_orig_pdd = 'L' THEN 'Loja'\n           WHEN pd.v_cnl_orig_pdd = 'A' THEN 'App'\n           WHEN pd.v_cnl_orig_pdd = 'S' THEN 'Site'\n       END AS canal_venda,\n       COALESCE(CAST(pd.v_uf_entr_pdd AS STRING), '') AS UF_pedido,\n       COALESCE(CAST(pd.v_lc_ent_pdd AS STRING), '') AS cidade_entrega,\n       CAST(pd.n_vlr_tot_pdd AS DECIMAL(38, 2)) AS valor_total_pedido, \nhash_id \nFROM pedidos_tmp AS pd",
             "table_tmp": "pedidos_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.id_pedido = table_origem.id_pedido",
+            "condition": "table_destino.hash_id = table_origem.hash_id",
             "match_filds": {
                 "processed": "true"
             }
@@ -167,13 +167,13 @@
                 "processed",
                 "creationDate"
             ],
-            "primary_key": ["codigo_filial", "id_venda_filial", "id_pedido"],
-            "bronze_query": "/* 'Bronze' */\nSELECT \n        n_id_fil,\n\tn_id_vd_fil,\n\tn_id_pdd \nFROM pedido_venda_tmp\n",
-            "silver_query": "/* 'Silver'*/\nSELECT CAST(pv.n_id_fil AS BIGINT) AS codigo_filial,\n       CAST(pv.n_id_vd_fil AS BIGINT) AS id_venda_filial,\n       CAST(pv.n_id_pdd AS BIGINT) AS id_pedido\nFROM pedido_venda_tmp AS pv",
+            "primary_key": "hash_id",
+            "bronze_query": "/* 'Bronze' */\nSELECT \n        n_id_fil,\n\tn_id_vd_fil,\n\tn_id_pdd, \nBASE64(CONCAT(CAST(n_id_fil AS STRIN), CAST(n_id_vd_fil AS STRING), CAST(n_id_pdd AS STRING))) AS hash_id \nFROM pedido_venda_tmp\n",
+            "silver_query": "/* 'Silver'*/\nSELECT CAST(pv.n_id_fil AS BIGINT) AS codigo_filial,\n       CAST(pv.n_id_vd_fil AS BIGINT) AS id_venda_filial,\n       CAST(pv.n_id_pdd AS BIGINT) AS id_pedido, \nhash_id \nFROM pedido_venda_tmp AS pv",
             "table_tmp": "pedido_venda_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.codigo_filial = table_origem.codigo_filial AND table_destino.id_venda_filial = table_origem.id_venda_filial AND table_destino.id_pedido = table_origem.id_pedido",
+            "condition": "table_destino.hash_id = table_origem.hash_id",
             "match_filds": {
                 "processed": "true"
             }
@@ -183,19 +183,19 @@
                 "processed",
                 "creationDate"
             ],
-            "primary_key": ["codigo_filial", "id_venda_filial"],
-            "bronze_query": "/* 'Bronze' */\nSELECT \n        d_dt_vd,\n\tn_id_fil,\n\tn_id_vd_fil,\n\tv_cli_cod,\n\tn_vlr_tot_vd,\n\tn_vlr_tot_desc,\n\tv_cpn_eml,\n\ttp_pgt \nFROM vendas_tmp\n",
-            "silver_query": "/* 'Silver' */\nSELECT COALESCE(date_format(vt.d_dt_vd, 'yyyy-MM-dd HH:mm:ss'), '') AS data_emissao,\n       CAST(vt.n_id_fil AS BIGINT) AS codigo_filial,\n       CAST(vt.n_id_vd_fil AS BIGINT) AS id_venda_filial,\n       COALESCE(CAST(vt.v_cli_cod AS STRING), '') AS codigo_cliente,\n       CAST(vt.n_vlr_tot_vd AS DECIMAL(38, 2)) AS valor_total_venda,\n       CAST(vt.n_vlr_tot_desc AS DECIMAL(38, 2)) AS valor_total_desconto,\n       CASE\n           WHEN vt.v_cpn_eml = 'SIM' THEN TRUE\n           ELSE FALSE\n       END AS enviado_email,\n       COALESCE(CAST(vt.tp_pgt AS STRING), '') AS tipo_pagamento\nFROM vendas_tmp AS vt",
+            "primary_key": "hash_id",
+            "bronze_query": "/* 'Bronze' */\nSELECT \n        d_dt_vd,\n\tn_id_fil,\n\tn_id_vd_fil,\n\tv_cli_cod,\n\tn_vlr_tot_vd,\n\tn_vlr_tot_desc,\n\tv_cpn_eml,\n\ttp_pgt, \nBASE64(CONCAT(CAST(n_id_fil AS STRING),CAST(n_id_vd_fil AS BIGINT))) AS hash_id \nFROM vendas_tmp\n",
+            "silver_query": "/* 'Silver' */\nSELECT COALESCE(date_format(vt.d_dt_vd, 'yyyy-MM-dd HH:mm:ss'), '') AS data_emissao,\n       CAST(vt.n_id_fil AS BIGINT) AS codigo_filial,\n       CAST(vt.n_id_vd_fil AS BIGINT) AS id_venda_filial,\n       COALESCE(CAST(vt.v_cli_cod AS STRING), '') AS codigo_cliente,\n       CAST(vt.n_vlr_tot_vd AS DECIMAL(38, 2)) AS valor_total_venda,\n       CAST(vt.n_vlr_tot_desc AS DECIMAL(38, 2)) AS valor_total_desconto,\n       CASE\n           WHEN vt.v_cpn_eml = 'SIM' THEN TRUE\n           ELSE FALSE\n       END AS enviado_email,\n       COALESCE(CAST(vt.tp_pgt AS STRING), '') AS tipo_pagamento, \nhash_id\nFROM vendas_tmp AS vt",
             "table_tmp": "vendas_tmp",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
-            "condition": "table_destino.codigo_filial = table_origem.codigo_filial AND table_destino.id_venda_filial = table_origem.id_venda_filial",
+            "condition": "table_destino.hash_id = table_origem.hash_id",
             "match_filds": {
                 "processed": "true"
             }
         }
     },
-    "consumer_operations": {
+    "gold_operations": {
         "vendas": {
             "join_operations": {
                 "tables": [
@@ -207,40 +207,41 @@
             },
             "table_name": "vendas",
             "table_step": {
-                "refined": "refined",
-                "consumer": "consumer"
+                "silver": "silver",
+                "gold": "gold"
             },
             "primary_key": ["codigo_filial", "codigo_cupom_venda"],
-            "silver_query": "",
+            "gold_query": " /* Gold 'Vendas' */\nSELECT \n    v.codigo_filial AS codifo_filial,\n    v.id_venda_filial AS codigo_cupom_venda,\n    v.data_emissao AS data_emissao,\n    iv.codigo_item_venda AS codigo_item,\n    iv.valor_final_item AS valor_unitario,\n    iv.quantidade_itens AS quantidade,\n    v.codigo_cliente AS codigo_cliente,\n    iv.tipo_desconto AS tipo_desconto,\n    p.canal_venda AS canal_venda\nFROM vendas AS v\nINNER JOIN pedido_venda AS pv ON CONCAT(CAST(pv.codigo_filial AS STRING), CAST(pv.id_venda_filial AS STRING)) = CONCAT(CAST(v.codigo_filial AS STRING), CAST(v.id_venda_filial AS STRING))\nINNER JOIN itens_vendas AS iv ON CONCAT(CAST(iv.codigo_filial AS STRING), CAST(iv.id_venda_filial)) = CONCAT(CAST(v.codigo_filial AS STRING), CAST(v.id_venda_filial AS STRING))\nINNER JOIN pedidos AS p ON p.id_pedido = pv.id_pedido\n"            ,
             "label_orig": "table_origem",
             "label_destino": "table_destino",
             "condition": "table_destino.codigo_filial = table_origem.codigo_filial AND table_destino.codigo_cupom_venda = table_origem.codigo_cupom_venda",
             "match_filds": {
                 "processed": "true"
             },
-            "upsert_refined": "false"
+            "upsert_silver": "false"
         },
-        "clientes_consolidada": {
+        "clientes": {
             "join_operations": {
                 "tables": [
                     "clientes",
-                    "clientes_opt"
+                    "clientes_opt",
+                    "enderecos_clientes"
                 ]
             },
-            "table_name": "clientes_consolidada",
+            "table_name": "clientes",
             "table_step": {
-                "refined": "refined",
-                "consumer": "consumer"
+                "silver": "silver",
+                "gold": "gold"
             },
             "primary_key": "codigo_cliente",
-            "silver_query": "",
+            "goldr_query": "/* Gold 'Clientes' */\nSELECT\n    c.codigo_cliente AS codigo_cliente,\n    c.data_nascimento_cliente AS data_nascimento,\n    datediff(current_date(), CAST(data_nascimento_cliente AS DATE)) AS idade,\n    c.genero_biologico_cliente AS sexo,\n    c.UF_endereco AS uf,\n    ec.cidade_endereco AS cidade,\n    c.estado_civil_cliente AS estado_civil,\n    co.autoriza_notificacao_ligacao AS flag_lgpd_call,\n    co.autoriza_notificacao_sms AS flag_lgpd_sms,\n    co.autoriza_notificacao_email AS flag_lgpd_email,\n    co.autoriza_notificacao_push AS flag_lgpd_push\nFROM clientes AS c\nINNER JOIN clientes_opt AS co ON co.codigo_cliente = c.codigo_cliente\nINNER JOIN enderecos_clientes AS ec ON ec.codigo_cliente = c.codigo_cliente",
             "label_orig": "table_origem",
             "label_destino": "table_destino",
             "condition": "table_destino.codigo_cliente = table_origem.codigo_cliente",
             "match_filds": {
                 "processed": "true"
             },
-            "upsert_refined": "false"
+            "upsert_silver": "false"
         }
     }
 }

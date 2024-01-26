@@ -2,7 +2,7 @@
 import os
 import sys
 import logging
-from utils import tables_config_dict, transform_data, consumer_operations, datalake_paths, transient_config_dict, criar_log, obter_ip_publico,limpar_diretorio_temporario
+from utils import tables_config_dict, transform_data, gold_operations, datalake_paths, transient_config_dict, criar_log ,limpar_diretorio_temporario
 from jobs import DeltaProcessingBronze, DeltaProcessingSilver, DeltaProcessingGold, Sparkinit
 
 # Definir o nível de log para "INFO"
@@ -28,7 +28,6 @@ if __name__ == "__main__":
     logger.info(f"Versão do spark: {spark.version}")
     # Imprimir o link do Spark Web UI
     logger.info(f"Interface gráfica do usuário do spark: {spark.sparkContext.uiWebUrl}")
-    obter_ip_publico()
     
     # Obtém todos os nomes das tabelas
     data_base_list = [keydb for keydb in tables_config_dict.keys()]
@@ -49,8 +48,8 @@ if __name__ == "__main__":
         delta_silver.run_silver(nome_tabela=nome_tabela, operacao=transform_data, sql_query="silver_query")
 
     # Realiza o processamento da Gold
-    for operacoes in consumer_operations.values():
-        delta_consumer.run_gold(operacoes=operacoes, query_sql= "gold_query")
+    for operacoes in gold_operations.values():
+        delta_consumer.run_gold(operacoes=operacoes, query_sql="gold_query")
     
     logger.info("Operação finalizada")
     

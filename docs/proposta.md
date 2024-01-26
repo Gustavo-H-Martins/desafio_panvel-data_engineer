@@ -1,4 +1,4 @@
-<img src="https://www.grupopanvel.com.br/pt/assets/logo_grupopanvel_branco.svg" alt="Grupo Panvel" width="200"/>
+<img src="https://www.grupopanvel.com.br/pt/assets/logo_grupopanvel_azul.svg" alt="Grupo Panvel" width="200"/>
 
 # <h1 align="center">Proposta de Arquitetura - Data Lake Grupo Panvel</h1>
 
