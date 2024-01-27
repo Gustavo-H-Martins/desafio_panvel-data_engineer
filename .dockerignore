@@ -5,14 +5,13 @@
 # Ignore as pastas docs, config, .vscode, __pycache__
 .vscode/
 docs/
-config/
 **/__pycache__/
 
 # Ignore os arquivos de configuração docker
 Dockerfile
 
 
-# Ignore os aruivos do `Pipenv`
+# Ignore os arquivos do `Pipenv`
 Pipfile
 Pipfile.lock
 

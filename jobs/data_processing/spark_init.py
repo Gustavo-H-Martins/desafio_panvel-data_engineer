@@ -32,15 +32,8 @@ class Sparkinit():
             .config("spark.driver.memory", f"{self.memoria}g") \
             .config("spark.driver.maxResultSize", f"{int(self.memoria / 3)}g") \
             .config("spark.driver.memoryOverhead", "3g") \
-            .config("spark.shuffle.file.buffer", "1m") \
-            .config("spark.file.transferTo", "false") \
-            .config("spark.shuffle.unsafe.file.output.buffer", "1m") \
             .config("spark.io.compression.lz4.blockSize", "512k") \
             .config("spark.shuffle.service.index.cache.size", "100m") \
-            .config("spark.shuffle.registration.timeout", "120000ms") \
-            .config("spark.shuffle.registration.maxAttempts", "5") \
-            .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer") \
-            .config("spark.kryoserializer.buffer.max", "2047m") \
             .config("spark.jars.packages", ",".join(self.pacotes)) \
             .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
             .config("spark.sql.catalog.spark_catalog","org.apache.spark.sql.delta.catalog.DeltaCatalog") \

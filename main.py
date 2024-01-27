@@ -55,9 +55,3 @@ if __name__ == "__main__":
     
     # Limpart todas as tabelas temporárias após a conclusão
     spark.catalog.clearCache()
-
-    # Limpar tabelas temporária
-    limpar_diretorio_temporario()
-
-    # Finaliza a sessão do Spark
-    spark.stop()

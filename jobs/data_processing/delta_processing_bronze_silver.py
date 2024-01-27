@@ -1,12 +1,11 @@
 import findspark
 findspark.init()
 import os
-from utils import formatar_sql, criar_log
+from utils import formatar_sql, criar_log, preparar_mover
 from pyspark.sql import functions
 from pyspark.sql.functions import col, to_date, to_timestamp
 from pyspark.sql import DataFrame
 from jobs.delta_processing import TableHandler
-import shutil
 
 formato_mensagem = f'{__name__}'
 logger = criar_log(formato_mensagem)
@@ -98,26 +97,10 @@ class DeltraProcessing:
         # Inserindo as colunas processed com False e creationDate com a data de hoje
         df = df.withColumn("processed", functions.lit(False)) \
             .withColumn("creationDate", functions.lit(functions.current_timestamp()))
-        self.spark.catalog.dropTempView(tabela_temporaria)
-
         # Removendo os duplicados com base no _id criado na sql query
-        chave_primaria = operacao[nome_tabela]["primary_key"]
-        
-        # -- pausando aqui só pra testar a possibilidade abaixo (pelos tipos de dados)
-        # df = df.dropDuplicates(subset=[chave_primaria])
-        # 
-
-        # Removendo os duplicados com base na chave primária
-        df.createOrReplaceTempView(tabela_temporaria)
-        if isinstance(chave_primaria, list):
-            self.spark.sql(f"SELECT DISTINCT {', '.join(chave_primaria)} FROM {tabela_temporaria}").createOrReplaceTempView("temp_view")
-            df = self.spark.sql(f"SELECT * FROM {tabela_temporaria} WHERE ({', '.join(chave_primaria)}) IN (SELECT * FROM temp_view)")
-            self.spark.catalog.dropTempView(tabela_temporaria)
-        else:
-            self.spark.sql(f"SELECT DISTINCT {chave_primaria} FROM {tabela_temporaria}").createOrReplaceTempView("temp_view")
-            df = self.spark.sql(f"SELECT * FROM {tabela_temporaria} WHERE ({chave_primaria}) IN (SELECT * FROM temp_view)")
-            self.spark.catalog.dropTempView(tabela_temporaria)
-
+        chave_primaria = operacao[nome_tabela]["primary_key"]        
+        df = df.dropDuplicates(subset=[chave_primaria])
+        self.spark.catalog.dropTempView(tabela_temporaria)
         return df
     
 # Definindo a classe bronze
@@ -183,7 +166,9 @@ class DeltaProcessingBronze(DeltraProcessing):
         retorno_sucesso_bronze = f"Processamento Camada Bronze da tabela {nome_tabela} - Concluída com Sucesso!"
         logger.info(retorno_sucesso_bronze)
 
-        shutil.move(diretorio_transient,  os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..", f"{self.ambiente_dados['transient']}/TRANSIENTFILES/{nome_tabela.upper()}")))
+        destino_transient_files = os.path.abspath(os.path.join(os.path.dirname(__file__),"..","..", f"{self.ambiente_dados['transient']}/TRANSIENTFILES/{nome_tabela.upper()}"))
+        print(destino_transient_files)
+        preparar_mover(origem=diretorio_transient, destino=destino_transient_files)
 
         return retorno_sucesso_bronze
     

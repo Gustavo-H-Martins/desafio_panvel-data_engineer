@@ -95,7 +95,7 @@ class DeltaProcessingGold:
                 deltatable_gold = tablehandler_gold.get_deltatable()
                 tablehandler_silver.upsert_table(deltatable=deltatable_gold, label_origem=rotulo_origem, label_destino=valor, condupdate=condicoes[index], match_fields=campos_validos)
     
-    def run_gold(self, operacoes: dict, query_sql: str = "sql_query", **kwargs):
+    def run_gold(self, operacoes: dict, query_sql: str = "gold_query", **kwargs):
         """
         Executa o processamento da camada Gold de várias tabelas silvers
         Parâmetros:

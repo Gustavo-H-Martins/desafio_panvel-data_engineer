@@ -1,12 +1,13 @@
 import os
 import tempfile
 import pandas as pd
+import numpy as np
 from deltalake import DeltaTable
 import duckdb
 from tabulate import tabulate
 import logging
 
-log_format = '%(asctime)s||Resultado:%(message)s'
+log_format = '%(levelname)-8s||%(asctime)s||%(name)-12s||%(lineno)d||%(message)s'
 date_format = '%Y-%m-%d %H:%M:%S'
 logging.basicConfig(level=logging.INFO, format=log_format, datefmt=date_format)
 
@@ -20,7 +21,7 @@ def carregar_tabela_delta_duckdb(caminho_da_tabela:str) -> duckdb.connect:
     Parâmetro:
         - `caminho_da_tabela`: uma uri para a tabela delta.
     """
-    df_sql = duckdb.connect(database=':memory:')
+    df_sql = duckdb.connect(database=':memory:', read_only=False)
 
     # Caminho para a tabela Delta
     caminho_da_tabela = os.path.normpath(caminho_da_tabela)
@@ -30,6 +31,8 @@ def carregar_tabela_delta_duckdb(caminho_da_tabela:str) -> duckdb.connect:
     try:
         # Tentando carregar os dados existentes na tabela Delta para um DataFrame Pandas
         df = DeltaTable(caminho_da_tabela).to_pandas()
+        df = df.astype(str)
+        
     except Exception as e:
         logging.error(f"Não foi possível carregar a tabela Delta do diretório: {caminho_da_tabela} Exceção: {e}")
         return 
@@ -51,4 +54,19 @@ def consultar_tabela_duck_db(tabela_duckdb:duckdb.connect, query_sql:str):
 
     # Consulte a tabela delta como uma tabela SQL comum.
     resultado = tabela_duckdb.execute(query_sql).fetch_df()
-    logging.info(f"""\n\n{tabulate(resultado, tablefmt="fancy_grid", showindex=False, numalign="left")}""")
+    logging.info(f"""\n\n{tabulate(resultado, headers=resultado.columns.to_list(), tablefmt="fancy_grid", showindex=False, numalign="left")}""")
+
+def tratar_valores_nan(dataframe:pd.DataFrame) -> pd.DataFrame:
+    """Recebe o dataframe realizando operações nas colunas com os `dtypes` int64 e float64 removendo os valores nulos e substituindo por `np.NaN
+    Parâmetro:
+        - `dataframe`: Dataframe original
+    Retorno:
+        - `dataframe`: Dataframe original após operações realizadas
+    """
+    # Trata valores nulos em colunas do tipo 'int64'
+    dataframe.loc[:, dataframe.dtypes == 'int64'] = dataframe.loc[:, dataframe.dtypes == 'int64'].fillna(np.nan)
+
+    # Trata valores nulos em colunas do tipo 'float64'
+    dataframe.loc[:, dataframe.dtypes == 'float64'] = dataframe.loc[:, dataframe.dtypes == 'float64'].fillna(np.nan)
+
+    return dataframe

@@ -4,4 +4,5 @@ jars/hadoop/
 jars/spark/
 jars/java/
 **/ITENS_VENDAS/
-**part-*
+**.part-*
+**000000000000000000**

@@ -112,3 +112,18 @@ def obter_ip_publico() -> str:
         logging.info(f"Tenta acessar: http://{host_ip}:4040")
     except Exception as e: 
         logging.info(f'Erro ao obter o endereço IP público: {e}')
+
+def preparar_mover(origem:str, destino:str):
+    """Recebe duas pastas ou arquivos e move para outro lugar.
+    Parâmetros:
+        - `origem`: caminho de origem
+        - `destino`: caminho de destino
+    """
+    
+    if os.path.exists(destino):
+        # Se a pasta de destino existir, move os arquivos da pasta de origem para a pasta de destino
+        for arquivo in os.listdir(origem):
+            shutil.move(os.path.join(origem, arquivo), destino)
+    else:
+        # Se a pasta de destino não existir, mover a pasta de origem para o destino
+        shutil.move(origem, destino)
