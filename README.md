@@ -106,6 +106,46 @@ Você pode copiar e  colar os comandos ou simplesmente executar em ordem.
     # Após isso basta definir um CRON e aguardar a execução
     ```
 
+## 📁🗃 Estrutura do diretório de desenvolvimento
+Estrutura do diretório de desenvolvimento
+```bash
+Listagem de caminhos de pasta
+desafio_panvel-data_engineer
+├───.vscode
+├───config
+├───datalake
+│   ├───camada_0_transient
+│   │   ├───CLIENTES
+│   │   ├───CLIENTES_OPT
+│   │   ├───ENDERECOS_CLIENTES
+│   │   ├───ITENS_VENDAS
+│   │   ├───PEDIDOS
+│   │   ├───PEDIDO_VENDA
+│   │   ├───TRANSIENTFILES
+│   │   └───VENDAS
+│   ├───camada_1_bronze
+│   ├───camada_2_silver
+│   └───camada_3_gold
+├───docs
+├───image
+│   └───README
+├───jars
+│   ├───hadoop
+│   │   └───hadoop-3.3.5
+│   │       └───bin
+│   ├───java
+│   │   └───jdk-17
+│   │       └───bin
+│   └───spark
+│       └───spark-3.4.0-bin-hadoop3
+│           └───bin
+├───jobs
+│   ├───data_processing
+│   └───delta_processing
+└───utils
+
+```
+
 ## ℹ Considerações Adicionais
 
 Para projetos futuros, será importante considerar a implementação de técnicas avançadas de análise de dados, como machine learning,
